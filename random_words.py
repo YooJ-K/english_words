@@ -294,23 +294,26 @@ def insert_file():
         label_file = tkinter.Label(file, text=filename.split('/')[-1])
         label_file.pack()
 
-        p = DoubleVar()
-        progress = ttk.Progressbar(file, maximum=100, length=20, variable=p)
+        p = 0.0
+        progress = ttk.Progressbar(file, maximum=100, length=180, variable=p)
         progress.pack()
+
+        progress.start(50000)
 
         f = open(filename, "r")
         lines = f.readlines()
         len_lines = len(lines)
         f.close()
 
+        f = open("words.txt", "a")
         for i, line in enumerate(lines):
-            # import time
-            # time.sleep(1)
-            p.set(i / double(len_lines))
+            p = i / double(len_lines) * 100
             progress.update()
 
-        progress.destroy()
+            f.write(line.strip() + ' 0\n')
+        f.close()
 
+        progress.destroy()
         file.destroy()
         
     btn_open = tkinter.Button(file, text="파일 불러오기", command=open_files)
