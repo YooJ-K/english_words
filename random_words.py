@@ -1,6 +1,5 @@
 from cProfile import label
 from distutils import command
-import enum
 from pickle import FALSE, TRUE
 import tkinter
 from tkinter import BOTTOM, CENTER, Entry, ttk
@@ -8,6 +7,9 @@ import random
 from tkinter import messagebox
 from turtle import left, right
 from tkinter import messagebox
+import os
+os.chdir(os.path.dirname(os.path.realpath(__file__)))
+
 COUNT = 3
 
 def insert():
