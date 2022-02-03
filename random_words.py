@@ -1,14 +1,18 @@
+from asyncore import read
 from cProfile import label
 from distutils import command
 from pickle import FALSE, TRUE
 import tkinter
-from tkinter import BOTTOM, CENTER, Entry, ttk
+from tkinter import CENTER, Button, DoubleVar, Entry, ttk
 import random
 from tkinter import messagebox
 from turtle import left, right
 from tkinter import messagebox
 import os
+
+from numpy import double
 os.chdir(os.path.dirname(os.path.realpath(__file__)))
+from tkinter import filedialog
 
 COUNT = 3
 
@@ -169,6 +173,9 @@ def test():
     f.writelines(("\n").join(words))
     f.close()
 def reading():
+    def change_by_enter(event):
+        change_COUNT
+
     def change_COUNT():
         global COUNT, init_lines
         
@@ -176,7 +183,7 @@ def reading():
         if num == '':
             messagebox.showinfo(message="다시 입력해주세요")
             return
-        COUNT = int()
+        COUNT = int(num)
         read_through.destroy()
 
         init_lines[0] = "COUNT = " + str(COUNT)
@@ -194,16 +201,122 @@ def reading():
     label_read_through.pack()
 
     entry_num = Entry(read_through)
+    entry_num.bind("<Enter>", change_by_enter)
     entry_num.pack()
 
     btn_count = tkinter.Button(read_through, text = "확인", command=change_COUNT)
-    btn_count.pack(side="bottom")
+    btn_count.pack()
 
     read_through.mainloop()
 def list_of_words():
-    return
+    result_of_words = []
+    exec_num = 0
+    def delete_word():
+        nonlocal table, result_of_words, exec_num
+
+        exec_num += 1
+
+        idx = table.focus()
+        table.delete(table.item(idx).get('text'))
+
+        result_of_words = []
+        for idx in table.get_children():
+            table_item = table.item(idx).get('values')
+            table_item[3] = str(table_item[3])
+            result_of_words.append(table_item)
+        
+    def event_of_mouse(event):
+        if messagebox.askyesno("Delete", "삭제하시겠습니까?"):
+            delete_word()
+
+    lists = tkinter.Tk()
+    lists.title("단어 목록")
+    lists.bind("<BackSpace>", event_of_mouse)
+    lists.bind("x", event_of_mouse)
+
+    scrollbar=tkinter.Scrollbar(lists)
+    scrollbar.pack(side="right", fill="y")
+
+    table = ttk.Treeview(lists, \
+        columns=["단어", "품사", "뜻", "횟수"], \
+            displaycolumns=["단어", "품사", "뜻", "횟수"], yscrollcommand=scrollbar.set)
+    table.pack()
+
+    table.column("#0", width=50)
+    table.column("#1", width=100, anchor="w")
+    table.column("#2", width=30)
+    table.column("#3", width=70)
+    table.column("#4", width=40)
+
+    table.heading("#1", text="단어", anchor="center")
+    table.heading("#2", text="품사", anchor="center")
+    table.heading("#3", text="뜻", anchor="center")
+    table.heading("#4", text="회독수", anchor="center")
+
+    f = open("words.txt", "r")
+    words = f.readlines()
+    f.close()
+
+    for i, word in enumerate(words):
+        table.insert('', 'end', text=(i+1), values=word, iid=str(i+1))
+    scrollbar["command"] = table.yview
+
+    for idx in table.get_children():
+        table_item = table.item(idx).get('values')
+        table_item[3] = str(table_item[3])
+        result_of_words.append(table_item)
+
+    lists.mainloop()
+
+    if exec_num > 0:
+        lines = []
+        for line in result_of_words:
+            lines.append((" ").join(line))
+
+        f = open("words.txt", "w")
+        f.writelines(("\n").join(lines) + "\n")
+        f.close()
 def insert_file():
-    return
+    
+    file = tkinter.Tk()
+    file.title('단어 파일로 입력하기')
+    file.geometry('200x200')
+
+    def open_files():
+        filename = filedialog.askopenfilename(initialdir='', title="txt 파일 선택", \
+            filetypes=(
+                ('txt files', '*.txt'),
+                ("all files","*.*")
+                )
+            )
+        print(filename)
+
+        label_file = tkinter.Label(file, text=filename.split('/')[-1])
+        label_file.pack()
+
+        p = DoubleVar()
+        progress = ttk.Progressbar(file, maximum=100, length=20, variable=p)
+        progress.pack()
+
+        f = open(filename, "r")
+        lines = f.readlines()
+        len_lines = len(lines)
+        f.close()
+
+        for i, line in enumerate(lines):
+            # import time
+            # time.sleep(1)
+            p.set(i / double(len_lines))
+            progress.update()
+
+        progress.destroy()
+
+        file.destroy()
+        
+    btn_open = tkinter.Button(file, text="파일 불러오기", command=open_files)
+    btn_open.pack(fill='both')
+
+    file.mainloop()
 
 init = open("init", 'r')
 init_lines = list(init.readlines())
